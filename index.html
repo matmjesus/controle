@@ -344,34 +344,45 @@
                     Aguardando conexão do celular...
                 </div>
 
-                <!-- 5 REELS DAS ROLETA -->
+                <!-- 5 REELS DAS ROLETA COM IDENTIFICAÇÃO DE FASE -->
                 <div class="slot-machine">
                     <div class="reel-column">
+                        <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Fase 1</span>
                         <div class="reel" id="r1">🍒</div>
                         <button class="btn-girar-unico" id="btn1" onclick="girarUma(1)">GIRAR</button>
                     </div>
                     <div class="reel-column">
+                        <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Fase 2</span>
                         <div class="reel" id="r2">🍋</div>
                         <button class="btn-girar-unico" id="btn2" onclick="girarUma(2)">GIRAR</button>
                     </div>
                     <div class="reel-column">
+                        <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Fase 3</span>
                         <div class="reel" id="r3">🔔</div>
                         <button class="btn-girar-unico" id="btn3" onclick="girarUma(3)">GIRAR</button>
                     </div>
                     <div class="reel-column">
+                        <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Fase 4</span>
                         <div class="reel" id="r4">⭐</div>
                         <button class="btn-girar-unico" id="btn4" onclick="girarUma(4)">GIRAR</button>
                     </div>
                     <div class="reel-column">
+                        <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Fase 5</span>
                         <div class="reel" id="r5">💎</div>
                         <button class="btn-girar-unico" id="btn5" onclick="girarUma(5)">GIRAR</button>
                     </div>
                 </div>
 
-                <!-- Indicador de Modo Selecionado no Notebook -->
+                <!-- Indicador de Fase Selecionada e Modo no Notebook -->
                 <div class="flex items-center justify-between bg-[#090d12] p-2.5 rounded-lg border border-slate-800 text-xs mb-4">
-                    <span class="text-slate-400 font-bold uppercase">Modo Atual:</span>
-                    <span id="labelModoAtual" class="font-extrabold text-blue-400 uppercase tracking-wide">NORMAL</span>
+                    <div>
+                        <span class="text-slate-400 font-bold uppercase">Fase Selecionada:</span>
+                        <span id="labelFaseAtual" class="font-extrabold text-amber-400 uppercase tracking-wide ml-1">FASE 1</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 font-bold uppercase">Modo:</span>
+                        <span id="labelModoAtual" class="font-extrabold text-blue-400 uppercase tracking-wide ml-1">NORMAL</span>
+                    </div>
                 </div>
 
                 <button class="btn-reset" onclick="resetarRoletas()">Resetar Roletas</button>
@@ -550,15 +561,20 @@
             const labelModo = document.getElementById('labelModoAtual');
             if (labelModo) {
                 labelModo.innerText = m.toUpperCase();
-                if (m === 'facil') labelModo.className = 'font-extrabold text-emerald-400 uppercase tracking-wide';
-                else if (m === 'dificil') labelModo.className = 'font-extrabold text-red-400 uppercase tracking-wide';
-                else labelModo.className = 'font-extrabold text-blue-400 uppercase tracking-wide';
+                if (m === 'facil') labelModo.className = 'font-extrabold text-emerald-400 uppercase tracking-wide ml-1';
+                else if (m === 'dificil') labelModo.className = 'font-extrabold text-red-400 uppercase tracking-wide ml-1';
+                else labelModo.className = 'font-extrabold text-blue-400 uppercase tracking-wide ml-1';
             }
         }
 
         function girarUma(id) {
             const btn = document.getElementById(`btn${id}`);
             if (!btn || btn.disabled) return;
+
+            const labelFase = document.getElementById('labelFaseAtual');
+            if (labelFase) {
+                labelFase.innerText = `FASE ${id}`;
+            }
 
             btn.disabled = true;
             const reel = document.getElementById(`r${id}`);
@@ -626,6 +642,8 @@
                 if (btn) btn.disabled = false;
             }
             simboloAlvoFacil = null;
+            const labelFase = document.getElementById('labelFaseAtual');
+            if (labelFase) labelFase.innerText = "FASE 1";
         }
 
         // --- CONEXÃO DO CELULAR (EMISSOR) ---
@@ -653,6 +671,18 @@
                     <div class="text-[11px] text-emerald-400 font-bold mb-1 flex items-center justify-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> CONECTADO AO NOTEBOOK
                     </div>
+
+                    <!-- SELEÇÃO DA FASE DO JOGO DA ROLETA -->
+                    <div class="text-[11px] text-amber-400 font-bold mt-1 uppercase tracking-wider">Seleção de Fase (Girar)</div>
+                    <div class="grid grid-cols-5 gap-1 mb-2">
+                        <button class="btn-girar-unico" onclick="enviarComandoPainel(this, 'girar', 1)">F1</button>
+                        <button class="btn-girar-unico" onclick="enviarComandoPainel(this, 'girar', 2)">F2</button>
+                        <button class="btn-girar-unico" onclick="enviarComandoPainel(this, 'girar', 3)">F3</button>
+                        <button class="btn-girar-unico" onclick="enviarComandoPainel(this, 'girar', 4)">F4</button>
+                        <button class="btn-girar-unico" onclick="enviarComandoPainel(this, 'girar', 5)">F5</button>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 font-bold mt-1 uppercase tracking-wider">Modo de Jogo</div>
                     <button class="btn-modo modo-normal" onclick="trocarModoPainel(this, 'normal')">
                         <i class="fa-solid fa-gauge"></i> Normal
                     </button>
@@ -757,14 +787,14 @@
             if (navigator.vibrate) navigator.vibrate([40, 40]);
         }
 
-        function trocarModoPainel(btnModo, novoModo) {
-            const card = btnModo.closest('.card-controle');
+        function enviarComandoPainel(elemento, acao, valor) {
+            const card = elemento.closest('.card-controle');
             const id = card.getAttribute('data-id');
             const conexao = conexoes[id];
 
             if (navigator.vibrate) navigator.vibrate(30);
 
-            const payload = { action: 'modo', val: novoModo };
+            const payload = { action: acao, val: valor };
 
             if (conexao && conexao.type === 'peerjs' && conexao.conn && conexao.conn.open) {
                 conexao.conn.send(payload);
@@ -775,6 +805,10 @@
                     payload: payload
                 });
             }
+        }
+
+        function trocarModoPainel(btnModo, novoModo) {
+            enviarComandoPainel(btnModo, 'modo', novoModo);
         }
     </script>
 </body>
