@@ -1,33 +1,140 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Gerenciador de Controles</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#090d12">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>🎰 Roletas Livres & Controle Remoto P2P</title>
+    
+    <!-- Dependências CDN: PeerJS, QRCode e FontAwesome -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: manipulation;
         }
 
         body {
             background: #090d12;
             color: #fff;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* CARD DO CASSINO (NOTEBOOK) */
+        .cassino-card {
+            background: #18222d;
+            border: 4px solid #f1c40f;
+            border-radius: 20px;
+            padding: 24px 16px;
+            width: 100%;
+            max-width: 580px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .status-box {
+            background: #090d12;
+            border: 1px solid #3498db;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: #3498db;
+            font-weight: bold;
+            min-height: 42px;
+            transition: all 0.3s ease;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: space-between;
+            background: #090d12;
+            padding: 16px 8px;
+            border-radius: 15px;
+            border: 3px solid #3498db;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .reel-column {
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            padding: 15px;
+            flex: 1;
+            gap: 10px;
         }
 
-        /* Grade responsiva 2x2 */
+        .reel {
+            width: 100%;
+            height: 70px;
+            background: #fff;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.2rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            color: #000;
+        }
+
+        .btn-girar-unico {
+            background: linear-gradient(180deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 10px 0;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1c5980;
+            transition: all 0.1s ease;
+        }
+
+        .btn-girar-unico:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #1c5980;
+        }
+
+        .btn-girar-unico:disabled {
+            background: #576574;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-reset {
+            background: linear-gradient(180deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #962d22;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* CARDS DO CELULAR (CONTROLE REMOTO) */
         .container-controles {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 15px;
             width: 100%;
             max-width: 650px;
@@ -35,27 +142,32 @@
 
         .card-controle {
             background: #18222d;
-            padding: 15px;
-            border-radius: 15px;
+            padding: 16px;
+            border-radius: 16px;
             text-align: center;
             border: 2px solid #3498db;
             width: 100%;
             position: relative;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
-        /* Botão para fechar/excluir o controle */
+        .card-controle.conectado {
+            border-color: #2ecc71;
+        }
+
         .btn-fechar {
             position: absolute;
-            top: 8px;
-            right: 8px;
+            top: 10px;
+            right: 10px;
             background: #e74c3c;
             color: white;
             border: none;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -63,189 +175,607 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.4);
         }
 
-        .btn-fechar:active {
-            transform: scale(0.9);
-        }
+        .btn-fechar:active { transform: scale(0.9); }
 
-        h3 {
+        .titulo-controle {
             color: #3498db;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-            padding-right: 15px;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
         }
 
-        input {
+        .input-codigo {
             width: 100%;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #3498db;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #3498db;
             background: #090d12;
             color: #fff;
-            font-size: 1.1rem;
+            font-size: 1.3rem;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        .input-codigo:focus {
+            outline: none;
+            border-color: #2ecc71;
         }
 
         .btn-conectar {
             background: #3498db;
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 14px;
+            border-radius: 10px;
             font-weight: bold;
             width: 100%;
-            font-size: 0.9rem;
+            font-size: 1rem;
             cursor: pointer;
+            box-shadow: 0 4px 0 #217dbb;
+            transition: all 0.1s ease;
+        }
+
+        .btn-conectar:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #217dbb;
         }
 
         .painel-modos {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .btn-modo {
             width: 100%;
-            height: 50px;
+            height: 52px;
             background: #090d12;
             border: 2px solid #3498db;
             color: #fff;
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             box-shadow: 0 3px 0 #0d151e;
-            transition: transform 0.1s ease;
+            transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
+
+        .btn-modo.modo-facil { border-color: #2ecc71; color: #2ecc71; }
+        .btn-modo.modo-normal { border-color: #3498db; color: #3498db; }
+        .btn-modo.modo-dificil { border-color: #e74c3c; color: #e74c3c; }
 
         .btn-modo:active {
             transform: translateY(2px);
             box-shadow: 0 1px 0 #0d151e;
+            background: #18222d;
         }
 
         .btn-add-controle {
             width: 100%;
             max-width: 650px;
             padding: 14px;
-            background: transparent;
+            background: rgba(46, 204, 113, 0.08);
             border: 2px dashed #2ecc71;
             color: #2ecc71;
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             margin-top: 15px;
-            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-add-controle:active {
-            background: rgba(46, 204, 113, 0.1);
-        }
-
-        @media (max-width: 380px) {
-            .container-controles {
-                grid-template-columns: 1fr;
-            }
+            background: rgba(46, 204, 113, 0.2);
+            transform: scale(0.98);
         }
     </style>
 </head>
-<body>
+<body class="p-3 md:p-6 flex flex-col items-center justify-start">
 
-    <div class="container-controles" id="containerControles">
-        <!-- Controles são adicionados dinamicamente aqui -->
-    </div>
-
-    <button class="btn-add-controle" onclick="criarNovoControle()">+ Adicionar Outro Controle</button>
-
-<script>
-    const peer = new Peer();
-    const conexoes = {};
-
-    function criarNovoControle() {
-        const container = document.getElementById('containerControles');
-        const card = document.createElement('div');
-        card.className = 'card-controle';
-
-        card.innerHTML = `
-            <button class="btn-fechar" onclick="excluirPainel(this)">✕</button>
-            <div class="secao-conectar">
-                <h3 class="titulo-controle">Controle</h3>
-                <input type="number" class="input-codigo" placeholder="Ex: 1234">
-                <button class="btn-conectar" onclick="conectarPainel(this)">CONECTAR</button>
+    <!-- NAVBAR SUPERIOR / ALTERNADOR DE MODO -->
+    <header class="w-full max-w-4xl mb-4 bg-slate-900/90 border border-slate-800 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xl">
+        <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-slate-950 font-black text-base shadow-md">
+                🎰
             </div>
-            <div class="painel-modos" style="display: none;">
-                <button class="btn-modo" onclick="trocarModoPainel(this, 'normal')">Normal</button>
-                <button class="btn-modo" onclick="trocarModoPainel(this, 'facil')">Fácil</button>
-                <button class="btn-modo" onclick="trocarModoPainel(this, 'dificil')">Difícil</button>
+            <div>
+                <h1 class="font-extrabold text-sm leading-tight text-yellow-400 tracking-wide uppercase">
+                    Roletas Livres P2P
+                </h1>
+                <p class="text-[11px] text-slate-400">Controle Remoto Celular-Notebook</p>
             </div>
-        `;
+        </div>
 
-        container.appendChild(card);
-        atualizarNumeracao();
-    }
+        <!-- Botões de Troca de Tela -->
+        <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+            <button id="btnViewSplit" onclick="alterarVisualizacao('split')" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-1">
+                <i class="fa-solid fa-columns"></i>
+                <span class="hidden sm:inline">Lado a Lado</span>
+            </button>
+            <button id="btnViewNotebook" onclick="alterarVisualizacao('notebook')" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-1">
+                <i class="fa-solid fa-laptop"></i>
+                <span>🖥️ Notebook</span>
+            </button>
+            <button id="btnViewMobile" onclick="alterarVisualizacao('mobile')" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white transition flex items-center gap-1">
+                <i class="fa-solid fa-mobile-screen"></i>
+                <span>📱 Celular</span>
+            </button>
+        </div>
+    </header>
 
-    function excluirPainel(btnFechar) {
-        const card = btnFechar.closest('.card-controle');
-        const id = card.getAttribute('data-id');
+    <!-- CONTAINER PRINCIPAL DE CONTEÚDO -->
+    <main id="mainWorkspace" class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start justify-items-center">
 
-        // Encerra a conexão se este painel estiver conectado
-        if (conexoes[id]) {
-            conexoes[id].close();
-            delete conexoes[id];
+        <!-- ========================================================================= -->
+        <!-- TELA DO NOTEBOOK: ROLETA DE CASSINO                                       -->
+        <!-- ========================================================================= -->
+        <section id="panelNotebook" class="w-full flex flex-col items-center">
+            <div class="cassino-card">
+                <h1 class="text-xl font-bold mb-2">🎰 Roletas Livres 🎰</h1>
+
+                <!-- Código de Conexão e QR Code -->
+                <div class="bg-[#090d12] border border-slate-800 p-3.5 rounded-xl mb-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="text-center sm:text-left">
+                        <span class="text-[11px] uppercase font-bold text-slate-400 tracking-wider">Código para Conectar:</span>
+                        <div class="flex items-center justify-center sm:justify-start gap-2 my-1">
+                            <span id="displayRoomCode" class="text-2xl font-black font-mono text-emerald-400 tracking-widest">----</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500">Escaneie o QR Code ao lado pelo celular</p>
+                    </div>
+
+                    <!-- Container do QR Code para o Celular -->
+                    <div class="flex flex-col items-center bg-white p-1.5 rounded-lg shadow-md">
+                        <div id="qrcode" class="w-20 h-20 flex items-center justify-center"></div>
+                        <span class="text-[8px] text-slate-900 font-bold mt-1 uppercase">Acessar no Celular</span>
+                    </div>
+                </div>
+
+                <div class="status-box" id="statusConexao">
+                    Aguardando conexão do celular...
+                </div>
+
+                <!-- 5 REELS DAS ROLETA -->
+                <div class="slot-machine">
+                    <div class="reel-column">
+                        <div class="reel" id="r1">🍒</div>
+                        <button class="btn-girar-unico" id="btn1" onclick="girarUma(1)">GIRAR</button>
+                    </div>
+                    <div class="reel-column">
+                        <div class="reel" id="r2">🍋</div>
+                        <button class="btn-girar-unico" id="btn2" onclick="girarUma(2)">GIRAR</button>
+                    </div>
+                    <div class="reel-column">
+                        <div class="reel" id="r3">🔔</div>
+                        <button class="btn-girar-unico" id="btn3" onclick="girarUma(3)">GIRAR</button>
+                    </div>
+                    <div class="reel-column">
+                        <div class="reel" id="r4">⭐</div>
+                        <button class="btn-girar-unico" id="btn4" onclick="girarUma(4)">GIRAR</button>
+                    </div>
+                    <div class="reel-column">
+                        <div class="reel" id="r5">💎</div>
+                        <button class="btn-girar-unico" id="btn5" onclick="girarUma(5)">GIRAR</button>
+                    </div>
+                </div>
+
+                <!-- Indicador de Modo Selecionado no Notebook -->
+                <div class="flex items-center justify-between bg-[#090d12] p-2.5 rounded-lg border border-slate-800 text-xs mb-4">
+                    <span class="text-slate-400 font-bold uppercase">Modo Atual:</span>
+                    <span id="labelModoAtual" class="font-extrabold text-blue-400 uppercase tracking-wide">NORMAL</span>
+                </div>
+
+                <button class="btn-reset" onclick="resetarRoletas()">Resetar Roletas</button>
+            </div>
+        </section>
+
+
+        <!-- ========================================================================= -->
+        <!-- TELA DO CELULAR: GERENCIADOR DE CONTROLES                                 -->
+        <!-- ========================================================================= -->
+        <section id="panelMobile" class="w-full flex flex-col items-center">
+            
+            <div class="w-full max-w-[650px] mb-3 flex items-center justify-between px-1">
+                <h2 class="text-sm font-bold uppercase text-slate-300 tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad text-emerald-400"></i> Painel do Celular
+                </h2>
+                <span class="text-xs text-slate-500 font-mono">P2P Controller</span>
+            </div>
+
+            <!-- CONTAINER DOS CARDS DE CONTROLE -->
+            <div class="container-controles" id="containerControles">
+                <!-- Controles são inseridos dinamicamente aqui -->
+            </div>
+
+            <button class="btn-add-controle" onclick="criarNovoControle()">
+                <i class="fa-solid fa-plus-circle"></i> + Adicionar Outro Controle
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        // --- ESTADO GLOBAL DA APLICAÇÃO ---
+        const simbolos = ["🍒", "🍋", "🍉", "🔔", "⭐", "💎", "7️⃣"];
+        let modo = "normal";
+        let simboloAlvoFacil = null;
+
+        let notebookRoomCode = '';
+        let peerNotebook = null;
+        let peerClient = null;
+        const conexoes = {};
+
+        // Canal de comunicação local para teste no mesmo navegador/sandbox
+        let broadcastChannel = null;
+        try {
+            broadcastChannel = new BroadcastChannel('roleta_p2p_channel');
+        } catch (e) {
+            console.warn("BroadcastChannel indisponível:", e);
         }
 
-        // Remove o painel da tela
-        card.remove();
+        // --- INICIALIZAÇÃO NO CARREGAMENTO DA PÁGINA ---
+        window.addEventListener('load', () => {
+            initNotebookPeer();
+            initClientPeer();
+            
+            // Detecta parâmetro da URL (Ex: ?code=1234&view=mobile)
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeParam = urlParams.get('code');
+            const viewParam = urlParams.get('view');
 
-        // Recalcula e ajusta a numeração dos painéis que sobraram
-        atualizarNumeracao();
-    }
-
-    function atualizarNumeracao() {
-        const cards = document.querySelectorAll('.card-controle');
-        cards.forEach((card, index) => {
-            const numero = index + 1;
-            card.setAttribute('data-id', numero);
-            const titulo = card.querySelector('.titulo-controle');
-            if (titulo) titulo.innerText = `Controle ${numero}`;
+            // Se for aberto em celular ou com o código na URL, altera a visão automaticamente
+            const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (viewParam === 'mobile' || (isMobileDevice && codeParam)) {
+                alterarVisualizacao('mobile');
+                criarNovoControle(codeParam || '');
+            } else if (viewParam === 'notebook') {
+                alterarVisualizacao('notebook');
+                criarNovoControle();
+            } else {
+                // Modo padrão responsivo
+                alterarVisualizacao(window.innerWidth < 1024 ? 'mobile' : 'split');
+                criarNovoControle(codeParam || '');
+            }
         });
-    }
 
-    function conectarPainel(btnConectar) {
-        const card = btnConectar.closest('.card-controle');
-        const id = card.getAttribute('data-id');
-        const input = card.querySelector('.input-codigo');
-        const codigo = input.value;
+        // --- ALTERNADOR DE VISUALIZAÇÃO (NOTEBOOK / CELULAR / SPLIT) ---
+        function alterarVisualizacao(view) {
+            const panelNotebook = document.getElementById('panelNotebook');
+            const panelMobile = document.getElementById('panelMobile');
+            const mainWorkspace = document.getElementById('mainWorkspace');
 
-        if (!codigo) return alert("Digite o código exibido na tela principal!");
+            if (view === 'notebook') {
+                panelNotebook.style.display = 'flex';
+                panelMobile.style.display = 'none';
+                mainWorkspace.className = "w-full max-w-3xl flex justify-center";
+            } else if (view === 'mobile') {
+                panelNotebook.style.display = 'none';
+                panelMobile.style.display = 'flex';
+                mainWorkspace.className = "w-full max-w-2xl flex justify-center";
+            } else { // 'split'
+                panelNotebook.style.display = 'flex';
+                panelMobile.style.display = 'flex';
+                mainWorkspace.className = "w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-start justify-items-center";
+            }
+        }
 
-        const conn = peer.connect('roleta-' + codigo);
+        // --- CONEXÃO NOTEBOOK (RECEPTOR) ---
+        function initNotebookPeer() {
+            notebookRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('displayRoomCode').innerText = notebookRoomCode;
 
-        conn.on('open', () => {
-            conexoes[id] = conn;
+            // Gera QR Code que direciona o celular direto para a página de controle
+            gerarQRCode(notebookRoomCode);
+
+            const peerId = 'roleta-' + notebookRoomCode;
+
+            // Fallback via BroadcastChannel Local
+            if (broadcastChannel) {
+                broadcastChannel.onmessage = (event) => {
+                    const data = event.data;
+                    if (data && data.targetCode === notebookRoomCode) {
+                        if (data.type === 'COMMAND') {
+                            executarComandoRemoto(data.payload);
+                        }
+                    }
+                };
+            }
+
+            try {
+                peerNotebook = new Peer(peerId);
+
+                peerNotebook.on('open', () => {
+                    document.getElementById('statusConexao').innerHTML = `Código do Controle: <span style="color: #2ecc71; font-size: 1.2rem;">${notebookRoomCode}</span>`;
+                });
+
+                peerNotebook.on('connection', (conn) => {
+                    document.getElementById('statusConexao').innerHTML = `<span style="color: #2ecc71;">📱 Controle Conectado!</span>`;
+
+                    conn.on('data', (data) => {
+                        executarComandoRemoto(data);
+                    });
+                });
+
+                peerNotebook.on('error', (err) => {
+                    console.warn("PeerJS modo offline/local ativo:", err);
+                });
+            } catch (err) {
+                console.warn("WebSocket restrito no ambiente:", err);
+            }
+        }
+
+        function gerarQRCode(codigo) {
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            
+            // Monta URL com o parâmetro ?code=XXXX&view=mobile
+            const currentUrl = window.location.origin + window.location.pathname;
+            const fullLink = `${currentUrl}?code=${codigo}&view=mobile`;
+
+            new QRCode(qrContainer, {
+                text: fullLink,
+                width: 80,
+                height: 80,
+                colorDark: "#090d12",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        function executarComandoRemoto(data) {
+            if (data.action === 'modo') {
+                setModo(data.val);
+            } else if (data.action === 'girar') {
+                girarUma(data.val || 1);
+            } else if (data.action === 'reset') {
+                resetarRoletas();
+            }
+        }
+
+        // --- LÓGICA DO JOGO DA ROLETA (NOTEBOOK) ---
+        function setModo(m) {
+            modo = m;
+            if (m === "facil") simboloAlvoFacil = null;
+
+            const labelModo = document.getElementById('labelModoAtual');
+            if (labelModo) {
+                labelModo.innerText = m.toUpperCase();
+                if (m === 'facil') labelModo.className = 'font-extrabold text-emerald-400 uppercase tracking-wide';
+                else if (m === 'dificil') labelModo.className = 'font-extrabold text-red-400 uppercase tracking-wide';
+                else labelModo.className = 'font-extrabold text-blue-400 uppercase tracking-wide';
+            }
+        }
+
+        function girarUma(id) {
+            const btn = document.getElementById(`btn${id}`);
+            if (!btn || btn.disabled) return;
+
+            btn.disabled = true;
+            const reel = document.getElementById(`r${id}`);
+
+            let girosAnimacao = 0;
+            const maxGirosAnimacao = 12;
+
+            const intervalo = setInterval(() => {
+                reel.innerText = simbolos[Math.floor(Math.random() * simbolos.length)];
+                girosAnimacao++;
+
+                if (girosAnimacao >= maxGirosAnimacao) {
+                    clearInterval(intervalo);
+                    aplicarResultado(id);
+                }
+            }, 70);
+        }
+
+        function aplicarResultado(idGirado) {
+            const reel = document.getElementById(`r${idGirado}`);
+
+            if (modo === "facil") {
+                if (!simboloAlvoFacil) {
+                    simboloAlvoFacil = simbolos[Math.floor(Math.random() * simbolos.length)];
+                }
+                reel.innerText = simboloAlvoFacil;
+
+            } else if (modo === "dificil") {
+                const outrosSimbolos = [];
+                for (let i = 1; i <= 5; i++) {
+                    if (i !== idGirado) {
+                        outrosSimbolos.push(document.getElementById(`r${i}`).innerText);
+                    }
+                }
+
+                const sorteio = Math.random() * 100;
+
+                if (sorteio < 1) {
+                    const frequencias = {};
+                    outrosSimbolos.forEach(s => frequencias[s] = (frequencias[s] || 0) + 1);
+                    const simboloRepetido = Object.keys(frequencias).find(s => frequencias[s] >= 2) || outrosSimbolos[0];
+                    reel.innerText = simboloRepetido;
+
+                } else if (sorteio < 6) {
+                    const simboloExistente = outrosSimbolos[Math.floor(Math.random() * outrosSimbolos.length)];
+                    reel.innerText = simboloExistente;
+
+                } else {
+                    const disponiveis = simbolos.filter(s => !outrosSimbolos.includes(s));
+                    if (disponiveis.length > 0) {
+                        reel.innerText = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+                    } else {
+                        reel.innerText = simbolos[Math.floor(Math.random() * simbolos.length)];
+                    }
+                }
+
+            } else {
+                reel.innerText = simbolos[Math.floor(Math.random() * simbolos.length)];
+            }
+        }
+
+        function resetarRoletas() {
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`btn${i}`);
+                if (btn) btn.disabled = false;
+            }
+            simboloAlvoFacil = null;
+        }
+
+        // --- CONEXÃO DO CELULAR (EMISSOR) ---
+        function initClientPeer() {
+            try {
+                peerClient = new Peer();
+            } catch (e) {
+                console.warn("PeerClient fallback ativo:", e);
+            }
+        }
+
+        function criarNovoControle(codigoPreenchido = '') {
+            const container = document.getElementById('containerControles');
+            const card = document.createElement('div');
+            card.className = 'card-controle';
+
+            card.innerHTML = `
+                <button class="btn-fechar" onclick="excluirPainel(this)">✕</button>
+                <div class="secao-conectar">
+                    <h3 class="titulo-controle">Controle</h3>
+                    <input type="number" class="input-codigo" placeholder="Ex: 1234" value="${codigoPreenchido}">
+                    <button class="btn-conectar" onclick="conectarPainel(this)">CONECTAR</button>
+                </div>
+                <div class="painel-modos" style="display: none;">
+                    <div class="text-[11px] text-emerald-400 font-bold mb-1 flex items-center justify-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> CONECTADO AO NOTEBOOK
+                    </div>
+                    <button class="btn-modo modo-normal" onclick="trocarModoPainel(this, 'normal')">
+                        <i class="fa-solid fa-gauge"></i> Normal
+                    </button>
+                    <button class="btn-modo modo-facil" onclick="trocarModoPainel(this, 'facil')">
+                        <i class="fa-solid fa-face-smile"></i> Fácil (Forçar Acerto)
+                    </button>
+                    <button class="btn-modo modo-dificil" onclick="trocarModoPainel(this, 'dificil')">
+                        <i class="fa-solid fa-skull"></i> Difícil (Forçar Erro)
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(card);
+            atualizarNumeracao();
+
+            // Auto-conecta se houver código preenchido via QR Code
+            if (codigoPreenchido && codigoPreenchido.length === 4) {
+                setTimeout(() => {
+                    const btn = card.querySelector('.btn-conectar');
+                    if (btn) conectarPainel(btn);
+                }, 400);
+            }
+        }
+
+        function excluirPainel(btnFechar) {
+            const card = btnFechar.closest('.card-controle');
+            const id = card.getAttribute('data-id');
+
+            if (conexoes[id]) {
+                if (conexoes[id].conn) conexoes[id].conn.close();
+                delete conexoes[id];
+            }
+
+            card.remove();
+            atualizarNumeracao();
+        }
+
+        function atualizarNumeracao() {
+            const cards = document.querySelectorAll('.card-controle');
+            cards.forEach((card, index) => {
+                const numero = index + 1;
+                card.setAttribute('data-id', numero);
+                const titulo = card.querySelector('.titulo-controle');
+                if (titulo) titulo.innerText = `Controle ${numero}`;
+            });
+        }
+
+        function conectarPainel(btnConectar) {
+            const card = btnConectar.closest('.card-controle');
+            const id = card.getAttribute('data-id');
+            const input = card.querySelector('.input-codigo');
+            const codigo = input.value.trim();
+
+            if (!codigo) return alert("Digite o código exibido na tela do notebook!");
+
+            btnConectar.innerText = "CONECTANDO...";
+
+            let conectado = false;
+
+            // Tentativa P2P Cloud via PeerJS
+            if (peerClient && !peerClient.destroyed) {
+                try {
+                    const conn = peerClient.connect('roleta-' + codigo);
+
+                    conn.on('open', () => {
+                        conectado = true;
+                        conexoes[id] = { type: 'peerjs', conn: conn, targetCode: codigo };
+                        sucessoConexao(card);
+                    });
+
+                    conn.on('error', () => {
+                        fallbackLocalConexao(id, codigo, card);
+                    });
+                } catch (e) {
+                    fallbackLocalConexao(id, codigo, card);
+                }
+            } else {
+                fallbackLocalConexao(id, codigo, card);
+            }
+
+            // Timeout para fallback se o servidor estivesse demorando
+            setTimeout(() => {
+                if (!conectado && !conexoes[id]) {
+                    fallbackLocalConexao(id, codigo, card);
+                }
+            }, 1000);
+        }
+
+        function fallbackLocalConexao(id, codigo, card) {
+            if (broadcastChannel) {
+                conexoes[id] = { type: 'broadcast', targetCode: codigo };
+                sucessoConexao(card);
+            } else {
+                alert("Não foi possível conectar ao código digitado.");
+            }
+        }
+
+        function sucessoConexao(card) {
+            card.classList.add('conectado');
             card.querySelector('.secao-conectar').style.display = 'none';
             card.querySelector('.painel-modos').style.display = 'flex';
-        });
-
-        conn.on('error', () => {
-            alert("Não foi possível conectar. Verifique o código digitado.");
-        });
-    }
-
-    function trocarModoPainel(btnModo, modo) {
-        const card = btnModo.closest('.card-controle');
-        const id = card.getAttribute('data-id');
-        const conn = conexoes[id];
-
-        if (conn && conn.open) {
-            if (navigator.vibrate) navigator.vibrate(30);
-            conn.send({ action: 'modo', val: modo });
+            if (navigator.vibrate) navigator.vibrate([40, 40]);
         }
-    }
 
-    // Inicializa com o primeiro controle na página
-    criarNovoControle();
-</script>
+        function trocarModoPainel(btnModo, novoModo) {
+            const card = btnModo.closest('.card-controle');
+            const id = card.getAttribute('data-id');
+            const conexao = conexoes[id];
 
+            if (navigator.vibrate) navigator.vibrate(30);
+
+            const payload = { action: 'modo', val: novoModo };
+
+            if (conexao && conexao.type === 'peerjs' && conexao.conn && conexao.conn.open) {
+                conexao.conn.send(payload);
+            } else if (broadcastChannel && conexao) {
+                broadcastChannel.postMessage({
+                    type: 'COMMAND',
+                    targetCode: conexao.targetCode,
+                    payload: payload
+                });
+            }
+        }
+    </script>
 </body>
 </html>
